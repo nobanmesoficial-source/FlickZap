@@ -24,6 +24,13 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+app.use(express.static(path.join(__dirname, '../web')));
+
+const adminPath = path.join(__dirname, '../admin/dist');
+if (require('fs').existsSync(adminPath)) {
+  app.use('/admin', express.static(adminPath));
+}
+
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/servers', serverRoutes);
@@ -33,6 +40,12 @@ app.use('/api/admin', adminRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', name: 'Flick Zap Server', version: '1.0.0' });
+});
+
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api') && !req.path.startsWith('/socket.io') && !req.path.startsWith('/uploads')) {
+    res.sendFile(path.join(__dirname, '../web/index.html'));
+  }
 });
 
 const onlineUsers = new Map();
